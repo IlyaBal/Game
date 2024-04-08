@@ -1,19 +1,25 @@
 import pygame
 import random
-from utils import load_sprite
+from Apple import Apple
+from utils import get_random_position, load_sprite, wrap_position
 from model import GameObject
+from Cat import Cat
 
 class Game:
+    
     def __init__(self):
         self._init_pygame()
-        self.screen = pygame.display.set_mode((1200, 1080))
+        # self.screen = pygame.display.set_mode((0,0), pygame.FULLSCREEN)
+        self.screen = pygame.display.set_mode((800,600))
         self.background = load_sprite("ancient-pyramids", False)
         self.clock = pygame.time.Clock()
-        cat = load_sprite("cat", True)
-        self.bobs = []
-        for i in range(0, 1000):
-         self.bobs.append(GameObject((random.randint(-1600,1600),random.randint(-1000,1000)), cat, (random.randint(-15,15),random.randint(-15, 15))))
+        self.cat = Cat((400,300))
+        self.apples = [Apple((get_random_position(self.screen))) for _ in range(6)]
+
+       
          
+    def _get_game_objects(self):
+        return [*self.apples, self.cat]
 
     def main_loop(self):
         while True:
@@ -31,15 +37,37 @@ class Game:
                 event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE
             ):
                 quit()
+        is_key_pressed = pygame.key.get_pressed()
 
-    def _process_game_logic(self):
-        for b in self.bobs:
-            b.move()
+        if is_key_pressed[pygame.K_RIGHT]:
+            self.cat.rotate(clockwise=True)
+        elif is_key_pressed[pygame.K_LEFT]:
+            self.cat.rotate(clockwise=False)
+        if is_key_pressed[pygame.K_UP]:
+            self.cat.accelerate()
+        if is_key_pressed[pygame.K_DOWN]:
+            self.cat.accelerateback()
+        if is_key_pressed[pygame.K_SPACE]:
+            self.cat.Stop()
+        if is_key_pressed[pygame.K_F1]:
+            self.background = load_sprite("ancient-pyramids", False)
+
+        if is_key_pressed[pygame.K_F2]:
+            self.background = load_sprite("sky3", False)
+        if is_key_pressed[pygame.K_F3]:
+            self.background = load_sprite("sky2", False)
         
+
+        if is_key_pressed[pygame.K_F5]:
+            self.background = load_sprite("sky", False)
+    def _process_game_logic(self):
+        for game_object in self._get_game_objects():
+            game_object.move(self.screen)
+
         
     def _draw(self):
         self.screen.blit(self.background, (0, 0))
-        for b in self.bobs:
-            b.draw(self.screen)
+        for game_object in self._get_game_objects():
+            game_object.draw(self.screen)
         pygame.display.flip()
         self.clock.tick(60)
